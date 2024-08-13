@@ -7,21 +7,46 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 const Task = ({ task, onDelete, onEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newText, setNewText] = useState(task.text);
+  const [isCompleted, setIsCompleted] = useState(task.completed || false);
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
   const handleSave = () => {
-    onEdit(task.id, newText);
+    onEdit(task.id, newText, isCompleted);
     setIsEditing(false);
   };
 
+  const handleComplete = () => {
+    setIsCompleted(!isCompleted);
+    onEdit(task.id, newText, !isCompleted);
+  };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md flex justify-between items-center mb-2">
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        padding: '1rem',
+        borderRadius: '0.5rem',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '0.5rem',
+        textDecoration: isCompleted ? 'line-through' : 'none',
+        color: isCompleted ? '#9e9e9e' : '#000',
+      }}
+    >
       {isEditing ? (
         <input
-          className="border-2 border-gray-300 rounded-md p-1 flex-grow mr-2"
+          style={{
+            border: '1px solid #d1d5db',
+            borderRadius: '0.25rem',
+            padding: '0.25rem',
+            flexGrow: 1,
+            marginRight: '0.5rem',
+          }}
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
         />
@@ -30,23 +55,60 @@ const Task = ({ task, onDelete, onEdit }) => {
       )}
 
       <div>
+        <button
+          style={{
+            backgroundColor: isCompleted ? '#facc15' : '#3b82f6',
+            color: '#ffffff',
+            padding: '0.25rem 0.5rem',
+            borderRadius: '0.25rem',
+            marginRight: '0.5rem',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          onClick={handleComplete}
+        >
+          {isCompleted ? 'Undo' : 'Complete'}
+        </button>
         {isEditing ? (
           <button
-            className="bg-blue-500 text-white px-2 py-1 rounded-md mr-2"
+            style={{
+              backgroundColor: '#3b82f6',
+              color: '#ffffff',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '0.25rem',
+              marginRight: '0.5rem',
+              border: 'none',
+              cursor: 'pointer',
+            }}
             onClick={handleSave}
           >
             Save
           </button>
         ) : (
           <button
-            className="bg-yellow-500 text-white px-2 py-1 rounded-md mr-2"
+            style={{
+              backgroundColor: '#fbbf24',
+              color: '#ffffff',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '0.25rem',
+              marginRight: '0.5rem',
+              border: 'none',
+              cursor: 'pointer',
+            }}
             onClick={handleEdit}
           >
             Edit
           </button>
         )}
         <button
-          className="bg-red-500 text-white px-2 py-1 rounded-md"
+          style={{
+            backgroundColor: '#ef4444',
+            color: '#ffffff',
+            padding: '0.25rem 0.5rem',
+            borderRadius: '0.25rem',
+            border: 'none',
+            cursor: 'pointer',
+          }}
           onClick={() => onDelete(task.id)}
         >
           Delete
@@ -67,6 +129,7 @@ const TaskList = () => {
     const newTaskItem = {
       id: Date.now().toString(),
       text: newTask,
+      completed: false,
     };
 
     setTasks([...tasks, newTaskItem]);
@@ -77,10 +140,10 @@ const TaskList = () => {
     setTasks(tasks.filter(task => task.id !== id));
   };
 
-  const handleEditTask = (id, newText) => {
+  const handleEditTask = (id, newText, completed) => {
     setTasks(
       tasks.map(task =>
-        task.id === id ? { ...task, text: newText } : task
+        task.id === id ? { ...task, text: newText, completed } : task
       )
     );
   };
@@ -95,20 +158,63 @@ const TaskList = () => {
     setTasks(reorderedTasks);
   };
 
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-4xl font-bold mb-4">Task Manager</h1>
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleAddTask();
+    }
+  };
 
-      <div className="mb-4">
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#e5e7eb',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <h1
+        style={{
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          marginBottom: '1rem',
+          backgroundColor: '#3b82f6',
+          color: '#ffffff',
+          padding: '0.5rem 1rem',
+          borderRadius: '0.5rem',
+        }}
+      >
+        Task Manager
+      </h1>
+
+      <div style={{ marginBottom: '1rem' }}>
         <input
-          className="border-2 border-gray-300 rounded-md p-2 mr-2 flex-grow"
+          style={{
+            border: '2px solid #d1d5db',
+            borderRadius: '0.25rem',
+            padding: '0.5rem',
+            marginRight: '0.5rem',
+            flexGrow: 1,
+          }}
           type="text"
           value={newTask}
           onChange={(e) => setNewTask(e.target.value)}
+          onKeyDown={handleKeyPress}
           placeholder="Enter a new task"
         />
         <button
-          className="bg-green-500 text-white px-4 py-2 rounded-md"
+          style={{
+            backgroundColor: '#22c55e',
+            color: '#ffffff',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            border: 'none',
+            cursor: 'pointer',
+          }}
           onClick={handleAddTask}
         >
           Add Task
@@ -121,7 +227,14 @@ const TaskList = () => {
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className="bg-gray-100 p-4 rounded-lg shadow-inner"
+              style={{
+                backgroundColor: '#f3f4f6',
+                padding: '1rem',
+                borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                width: '100%',
+                maxWidth: '600px',
+              }}
             >
               {tasks.map((task, index) => (
                 <Draggable key={task.id} draggableId={task.id} index={index}>
